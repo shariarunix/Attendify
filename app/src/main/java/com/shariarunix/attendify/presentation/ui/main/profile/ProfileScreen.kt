@@ -1,6 +1,7 @@
 package com.shariarunix.attendify.presentation.ui.main.profile
 
 import android.os.Build
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -47,6 +48,7 @@ import com.shariarunix.attendify.R
 import com.shariarunix.attendify.domain.model.UserModel
 import com.shariarunix.attendify.presentation.commons.SwitchWithCustomColors
 import com.shariarunix.attendify.presentation.commons.TopAppBar
+import com.shariarunix.attendify.presentation.ui.main.profile.dialog.PasswordChangeDialog
 import com.shariarunix.attendify.presentation.ui.main.profile.dialog.UserInfoChangeDialog
 import com.shariarunix.attendify.presentation.ui.theme.AttendifyTheme
 import com.shariarunix.attendify.presentation.ui.theme.RoundedCornerShape10Dp
@@ -353,7 +355,7 @@ fun ProfileScreen(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(4.dp))
                                     .clickable {
-                                        // TODO Change Password
+                                        onEvent(ProfileScreenEvent.IsPasswordChangeDialogShow(true))
                                     }
                                     .padding(4.dp)
                             )
@@ -423,14 +425,17 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.size(8.dp))
                     }
                 } // Log Out Button Section
+
             } // Lazy Column End
+
         } // Surface End
 
-        UserInfoChangeDialog(
-            uiState = uiState.value,
-            onEvent = onEvent,
-        ) {
+        UserInfoChangeDialog(uiState = uiState.value, onEvent = onEvent) {
             onEvent(ProfileScreenEvent.IsUserInfoChangeDialogShow(false))
+        }
+
+        PasswordChangeDialog(uiState = uiState.value, onEvent = onEvent) {
+            onEvent(ProfileScreenEvent.IsPasswordChangeDialogShow(false))
         }
     }
 }

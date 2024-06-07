@@ -32,6 +32,10 @@ const val CONFIRM_PASS_MATCH = "Password you entered does not match"
 const val PHONE_BLANK = "Phone number cannot be blank"
 const val PHONE_VALID = "That's not a valid phone number"
 
+// Current Password Error Text
+const val CURRENT_PASS_BLANK = "Current password cannot be blank"
+const val CURRENT_PASS_MATCH = "Current password does not match"
+
 // Week Days
 val WEEK_DAYS = listOf("Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri")
 

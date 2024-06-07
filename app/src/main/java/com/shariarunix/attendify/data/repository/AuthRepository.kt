@@ -1,6 +1,8 @@
 package com.shariarunix.attendify.data.repository
 
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.AuthCredential
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.shariarunix.attendify.data.SharedPref
@@ -18,7 +20,10 @@ class AuthRepository @Inject constructor(
     private val mAuth: FirebaseAuth,
     private val sPref: SharedPref
 ) {
-    suspend fun login(email: String, password: String): Resource<FirebaseUser> {
+    suspend fun login(
+        email: String,
+        password: String
+    ): Resource<FirebaseUser> {
         return try {
             val result = mAuth.signInWithEmailAndPassword(email, password).await()
             result.user?.uid?.let {
@@ -32,7 +37,11 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    suspend fun signup(name: String, email: String, password: String): Resource<FirebaseUser> {
+    suspend fun signup(
+        name: String,
+        email: String,
+        password: String
+    ): Resource<FirebaseUser> {
         return withContext(Dispatchers.IO) {
             try {
                 val result = mAuth.createUserWithEmailAndPassword(email, password).await()
@@ -62,4 +71,26 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    suspend fun changePassword(
+        userEmail: String,
+        currentPassword: String,
+        newPassword: String
+    ): Resource<Unit> {
+        return try {
+            val currentUser =
+                mAuth.currentUser ?: return Resource.Failure(Exception("User is not authenticated"))
+            currentUser.reauthenticate(
+                EmailAuthProvider.getCredential(userEmail, currentPassword)
+            ).await()
+            currentUser.updatePassword(newPassword).await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
+    suspend fun deleteAccount(password: String): Resource<Unit> {
+        return Resource.Failure(Exception("Not Implemented"))
+    }
 }

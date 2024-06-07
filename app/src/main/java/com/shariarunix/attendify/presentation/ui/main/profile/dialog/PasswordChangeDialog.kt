@@ -2,7 +2,6 @@ package com.shariarunix.attendify.presentation.ui.main.profile.dialog
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -10,14 +9,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -26,7 +23,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,41 +32,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.shariarunix.attendify.R
 import com.shariarunix.attendify.presentation.commons.ButtonWithProgress
 import com.shariarunix.attendify.presentation.commons.ErrorText
-import com.shariarunix.attendify.presentation.commons.NameInputField
-import com.shariarunix.attendify.presentation.commons.PhoneInputField
-import com.shariarunix.attendify.presentation.commons.SwitchWithCustomColors
+import com.shariarunix.attendify.presentation.commons.PasswordError
+import com.shariarunix.attendify.presentation.commons.PasswordInputField
 import com.shariarunix.attendify.presentation.commons.TopAppBar
 import com.shariarunix.attendify.presentation.ui.main.profile.ProfileScreenEvent
 import com.shariarunix.attendify.presentation.ui.main.profile.ProfileScreenState
-import com.shariarunix.attendify.presentation.ui.theme.RoundedCornerShape10Dp
-import com.shariarunix.attendify.presentation.ui.theme.bodyFontFamily
 import com.shariarunix.attendify.utils.Resource
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserInfoChangeDialog(
+fun PasswordChangeDialog(
     modifier: Modifier = Modifier,
     uiState: ProfileScreenState,
     onEvent: (ProfileScreenEvent) -> Unit,
-    onDismissRequest: () -> Unit
+    onDismissRequest: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     val snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 
-    if (uiState.isUserInfoChangeDialogShow) {
+    if (uiState.isPasswordChangeDialogShow) {
         ModalBottomSheet(
             modifier = Modifier.statusBarsPadding(),
             onDismissRequest = onDismissRequest,
@@ -79,7 +67,7 @@ fun UserInfoChangeDialog(
             tonalElevation = 0.dp,
             dragHandle = {
                 TopAppBar(
-                    title = "Change User Info",
+                    title = "Change Password",
                     titleColor = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Medium,
                     showIcon = false
@@ -99,14 +87,6 @@ fun UserInfoChangeDialog(
         ) {
 
             var showProgress by rememberSaveable {
-                mutableStateOf(false)
-            }
-
-            var isNameChanged by rememberSaveable {
-                mutableStateOf(false)
-            }
-
-            var isPhoneChanged by rememberSaveable {
                 mutableStateOf(false)
             }
 
@@ -142,39 +122,24 @@ fun UserInfoChangeDialog(
                                     state = rememberScrollState()
                                 )
                         ) {
+
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            NameInputField(
-                                value = if (isNameChanged) {
-                                    uiState.name
-                                } else uiState.userData?.userName ?: "Loading",
-                                labelText = "Full Name",
-                                hintText = uiState.userData?.userName ?: "Loading",
-                                isError = uiState.nameError != null,
+                            PasswordInputField(
+                                value = uiState.currentPassword,
+                                labelText = "Current Password",
+                                hintText = "Enter your current password",
                                 imeAction = ImeAction.Next,
+                                isError = uiState.currentPasswordError != null,
+                                showPass = uiState.isCurrentPasswordShow,
+                                showPassChange = {
+                                    onEvent(ProfileScreenEvent.IsCurrentPasswordShow(it))
+                                }
                             ) {
-                                isNameChanged = true
-                                onEvent(ProfileScreenEvent.OnNameChange(it))
-                            }
+                                onEvent(ProfileScreenEvent.OnCurrentPasswordChange(it))
+                            } // Current Password Field
 
-                            ErrorText(text = uiState.nameError)
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            PhoneInputField(
-                                value = if (isPhoneChanged) {
-                                    uiState.phone
-                                } else uiState.userData?.userPhone ?: "Loading",
-                                labelText = "Phone Number",
-                                hintText = uiState.userData?.userPhone ?: "Loading",
-                                isError = uiState.phoneError != null,
-                                imeAction = ImeAction.Done,
-                            ) {
-                                isPhoneChanged = true
-                                onEvent(ProfileScreenEvent.OnPhoneNumberChange(it))
-                            }
-
-                            ErrorText(text = uiState.phoneError)
+                            ErrorText(text = uiState.currentPasswordError)
 
                             Spacer(modifier = Modifier.height(20.dp))
 
@@ -183,79 +148,86 @@ fun UserInfoChangeDialog(
                                 color = MaterialTheme.colorScheme.surfaceContainer,
                             )
 
-                            Spacer(modifier = Modifier.height(20.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(60.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.surfaceContainer,
-                                        shape = RoundedCornerShape10Dp
-                                    )
-                                    .clip(RoundedCornerShape10Dp)
-                                    .padding(horizontal = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                            PasswordInputField(
+                                value = uiState.newPassword,
+                                labelText = "New Password",
+                                hintText = "Enter your new password",
+                                imeAction = ImeAction.Next,
+                                isError = !(uiState.newPasswordError?.successful ?: true),
+                                showPass = uiState.isNewPasswordShow,
+                                showPassChange = {
+                                    onEvent(ProfileScreenEvent.IsNewPasswordShow(it))
+                                }
                             ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_teacher),
-                                    contentDescription = "Teacher",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(20.dp)
-                                )
+                                onEvent(ProfileScreenEvent.OnNewPasswordChange(it))
+                            } // New Password Field
 
-                                Text(
-                                    text = "Are you teacher?",
-                                    fontFamily = bodyFontFamily,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Normal,
-                                    color = if (uiState.isUserTeacher) {
-                                        MaterialTheme.colorScheme.onSurface
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
-                                    },
-                                    modifier = Modifier
-                                        .padding(horizontal = 10.dp)
-                                        .weight(1F)
-                                )
+                            PasswordError(passwordErrorResult = uiState.newPasswordError)
 
-                                SwitchWithCustomColors(
-                                    checked = uiState.isUserTeacher,
-                                    onCheckedChange = { onEvent(ProfileScreenEvent.IsUserTeacher(it)) }
-                                )
-                            } // Are You Teacher Row
+                            Spacer(modifier = Modifier.height(16.dp))
 
-                        } // Column
+                            PasswordInputField(
+                                value = uiState.confirmPassword,
+                                labelText = "Confirm Password",
+                                hintText = "Confirm new password",
+                                imeAction = ImeAction.Done,
+                                isError = uiState.confirmPasswordError != null,
+                                showPass = uiState.isConfirmPasswordShow,
+                                showPassChange = {
+                                    onEvent(ProfileScreenEvent.IsConfirmPasswordShow(it))
+                                }
+                            ) {
+                                onEvent(ProfileScreenEvent.OnConfirmPasswordChange(it))
+                            } // Confirm Password Field
+
+                            ErrorText(text = uiState.confirmPasswordError)
+
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
 
                         ButtonWithProgress(
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .padding(bottom = 16.dp),
                             onClick = {
-                                onEvent(ProfileScreenEvent.OnChangeUserInfo)
+                                onEvent(ProfileScreenEvent.OnPasswordChange)
                             },
                             showProgress = showProgress,
                             buttonText = "Change"
-                        ) // Button For Change User Info
+                        ) // Button For Change Password
 
                         Spacer(
                             modifier = Modifier
                                 .height(32.dp)
                         )
 
-                        LaunchedEffect(key1 = uiState.changeUserInfoResult) {
-                            uiState.changeUserInfoResult?.let {
+                        LaunchedEffect(key1 = uiState.changePasswordResult) {
+                            uiState.changePasswordResult?.let {
                                 when (it) {
+                                    is Resource.Success -> {
+                                        sheetState.hide()
+                                        onDismissRequest()
+                                        onEvent(ProfileScreenEvent.ClearChangePasswordResult)
+                                        showProgress = false
+                                    }
+
+                                    Resource.Loading -> {
+                                        showProgress = true
+                                    }
+
                                     is Resource.Failure -> {
                                         scope.launch {
                                             val snackbarResult = snackbarHostState.showSnackbar(
-                                                message = "Something went wrong",
+                                                message = it.exception.message
+                                                    ?: "Something went wrong",
                                                 actionLabel = "Try again",
                                                 duration = SnackbarDuration.Short
                                             )
                                             when (snackbarResult) {
                                                 SnackbarResult.ActionPerformed -> {
-                                                    onEvent(ProfileScreenEvent.OnChangeUserInfo)
+                                                    onEvent(ProfileScreenEvent.OnPasswordChange)
                                                 }
 
                                                 SnackbarResult.Dismissed -> {
@@ -263,24 +235,14 @@ fun UserInfoChangeDialog(
                                                 }
                                             }
                                         }
-                                    }
-
-                                    Resource.Loading -> {
-                                        showProgress = true
-                                    }
-
-                                    is Resource.Success -> {
-                                        sheetState.hide()
-                                        onDismissRequest()
-                                        onEvent(ProfileScreenEvent.ClearChangeUserInfoResult)
                                         showProgress = false
                                     }
                                 }
                             }
-                        } // Launched Effect End
-                    } // Parent Column
+                        } // Launched Effect
+                    } // Column Parent
                 } // Surface
             } // Scaffold
-        } // Modal Bottom Sheet
+        } // ModalBottomSheet
     }
 }
